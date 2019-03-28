@@ -1,0 +1,42 @@
+function [SymmetryGroup] = SYM_SymmetryGroup(RegionSegment)
+%This function detects the group of segmented region in an Image.
+
+MaxFrequency=ArrayMaxValue(RegionSegment);
+Matrix2=repmat(MaxFrequency,size(RegionSegment,1),size(RegionSegment,2));
+Difference=Matrix2 - RegionSegment;
+for intR= 1 : size(Difference,1),
+    for intC= 1 : size(Difference,2),
+        E0=Difference(intR,intC)*10000;
+        E1=floor(E0/1000);
+        E2=E1/10;
+        Difference(intR,intC)=E2;
+    end
+end
+[Row,Col]=find(Difference <= 0.1);
+Number=numel(Row);
+if(Number == (size(RegionSegment,1)*size(RegionSegment,2)))
+            % Group=1 stands for O(2) Group present in the region of an Object and
+            % shows that frequency distribution is constant throughout.
+            Group=1;
+else
+            
+        for intiCounter=1 : size(RegionSegment,2),
+            Rows=si
+            FirstColIndex=intiCounter;
+            SecondColIndex=size(RegionSegment,2)-(FirstColIndex-1);
+            Difference=RegionSegment(1 : 
+        end
+    
+
+        if(SymmCorrelation == SelfCorrelation)
+            %Group=2 is the detection of Di-hedral Group in the region of an
+            %Object.
+            Group=2;
+        else
+            %Group=3 is the Cyclic Group in the region of an Object.
+            Group=3;
+        end 
+end
+        SymmetryGroup=Group; 
+end
+

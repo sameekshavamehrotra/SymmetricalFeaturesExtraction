@@ -1,0 +1,120 @@
+function [SymmetryGroup,Cardinality,LOGImage]=SYM_EXTRACTION(OriginalImage)
+%This algorithm is the center of execution off entire software and calls
+%differnt functions to accomplish following tasks for extraction of
+%symmetry features.
+
+%SECTION 1: Extraction of Symmetrical Features.
+%Detects Frieze Exapnsion Pattern in an Image.
+
+%Computes DFT Matrix and Spectral Density Matrix for a FEP.
+
+%Detects Center of Rotation Symmetry in an Image using RSS/SSD algorithm.
+
+%Determine supporting regions(Segmented Regions)in a DFT of Frieze
+%Expansion Pattern.
+
+%Determine Symmetry Group of an Object by analysing the symmetry group for
+%every supporting region.
+
+%Determine the Cardinality of Symmetry Group for every Supporting Region.
+
+Image=OriginalImage(:,:,1);
+RSSIntensityValue=255;
+
+Equations=cell(25,1);            
+counter=0;
+
+for C1= -6 : 6
+    for C2=-6 : 6            
+        PX=size(Image,2)/2 + C1;
+        PY=size(Image,1)/2 + C2;
+
+        counter=counter + 1;
+
+        [FEP_Matrix] = SYM_FEP(Image,PX,PY);
+        FEP=FEP_Matrix/RSSIntensityValue;
+        [R,C]=find(FEP ~= 1);
+        ColSize=size(FEP,2);                    
+        figure;
+        plot(0,0,'.k',(ColSize + 10),2,'k.',(1:ColSize),FEP(R(1),:));
+
+        [DFT_Matrix,SD_Matrix]=SYM_DFT(FEP_Matrix);
+
+        RSS_Matrix=zeros(size(Image,1),size(Image,2));
+        [RSS_Value]=SYM_RSS(SD_Matrix); 
+        RSS_Matrix(round(PY),round(PX))=RSS_Value;
+        [Equations] = SYM_BIDIRECTION(DFT_Matrix,Equations,counter,PX,PY);
+    end
+end 
+
+RSSMaxValue=ArrayMaxValue(RSS_Matrix);
+[Row,Col]=find(RSS_Matrix == RSSMaxValue);
+RSSCenterX=R
+Image(Row,Col)=RSSIntensityValue;            
+figure;
+imshow(Image);
+title('Center of Rotation Symmetery determined by RSS Algorithm.');
+[LabeledMatrix,im3_peaks,im3_values] = SYM_Labelling(SD_Matrix);
+[SegmentMatrix]=SYM_Segment(LabeledMatrix,FEP_Matrix,SD_Matrix,DFT_Matrix,Image);
+
+for intCount= 1 : size(SegmentMatrix,2),
+    Matrix=cell2mat(SegmentMatrix(1,intCount));
+    Matrix=Matrix/255;
+    for intR= 1 : size(Matrix,1),
+        for intC= 1 : size(Matrix,2),
+                E0=Matrix(intR,intC)*10000;
+                E1=floor(E0/1000);
+                E2=E1/10;
+                Matrix(intR,intC)=E2;
+        end
+    end
+    if((size(Matrix,1)*size(Matrix,2)) ~= 0)
+        [R,C]=find(Matrix ~= 0);  
+        counter = 0;
+        RMatrix=zeros(1,max(max(R)));
+        for intR = 1 : max(max(R)),
+            [R1,C1]=find(Matrix(intR,:) == 0);
+            if(numel(C1) == 0)
+                counter = counter + 1;
+                RMatrix(1,counter)=intR;
+            end
+        end
+        MinR=RMatrix(1,1);
+        MaxR=max(max(RMatrix));
+        MinC=min(min(C));
+        MaxC=max(max(C)); 
+        if(MinR ~= 0 && MaxR ~= 0 && MinC ~= 0 && MaxC ~= 0)
+            RegionSegment=Matrix(MinR : MaxR,MinC : MaxC);
+            [SymmetryGroup] = SYM_SymmetryGroup(RegionSegment);
+            [Cardinality] = SYM_SymmetryGroupCardinality(FEP_Matrix,MinR,MaxR,MinC,MaxC);
+        end
+    end
+end
+
+[D_Matrix]=SYM_SOLVEBIDIRECTION(Image,Equations);   
+[SSD_Matrix]=GaussianSmoothing(D_Matrix,0.5,3);
+
+SSDMaxValue=ArrayMaxValue(SSD_Matrix);
+[Row,Col]=find(SSD_Matrix == SSDMaxValue);       
+
+X=floor(mean(Col));
+Y=floor(mean(Row));
+
+OriginalImage(Y,X,1)=76;
+OriginalImage(Y,X,2)=0;
+OriginalImage(Y,X,3)=0;
+
+figure;
+imshow(OriginalImage);
+title('Center of Rotation Symmetery determined by SSD Algorithm.');
+
+%SECTION 2: Extraction of Skeleton of an Object.
+%This section extracts the skeleton of an object using Laplacian of
+%Guassian algorithm oevr an Object.
+
+Sigma=0.7;
+KernelSize=9;
+LOGImage=ComputeLOG(Image,Sigma,KernelSize);
+
+end
+

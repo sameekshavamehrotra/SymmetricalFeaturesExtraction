@@ -1,0 +1,17 @@
+function [ Cardinality ] = SYM_SymmetryGroupCardinality(FEP_Matrix,MinR,MaxR,MinC,MaxC)
+%This function determines the cardinality of the symmetry Group.
+DFTCoefficient=zeros(1,floor(MaxC-MinC)+1);
+FEP_Double=
+DFT=fft2(
+for intCol= 2 : MaxC,
+    Sum=0;
+    for intRow=MinR : MaxR,
+        Sum=Sum + SD_Matrix(intRow,intCol);        
+    end
+    DFTCoefficient(1,intCol)=Sum;
+end
+MaxValue=ArrayMaxValue(DFTCoefficient);
+[Row,Col]=find(DFTCoefficient == MaxValue);
+Cardinality=Col - 1;
+end
+

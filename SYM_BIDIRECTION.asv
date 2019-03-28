@@ -1,0 +1,25 @@
+function [ Equations ] = SYM_BIDIRECTION(DFT_Matrix,Equations,counter,X,Y)
+%This function computes a probable center of Symmetry points based on
+%Intersection of bi-directional flows in an Image around the center.
+
+Rows=size(DFT_Matrix,1);       
+
+    Angle=rand(Rows,1);
+    for intRow= 1 : Rows,
+        ComplexNumber=str2num(eval(mat2str(cell2mat(DFT_Matrix(intRow,2)))));
+        RealPart=real(ComplexNumber);
+        ImaginaryPart=imag(ComplexNumber);
+        Fraction=RealPart/ImaginaryPart;
+        Angle(intRow,1)=atan(Fraction);
+    end
+
+    MedianValue=median(Angle);
+    AngleTangent=tan(MedianValue);
+
+    YCoefficient=(AngleTangent)/(X + Y*AngleTangent);
+    XCoefficient=1/(X + Y*AngleTangent);
+
+    Equation=[num2str(YCoefficient),'*x',num2str(XCoefficient),'*y=1'];
+    Equations(counter,1)=mat2cell(str2mat(Equation));
+end
+

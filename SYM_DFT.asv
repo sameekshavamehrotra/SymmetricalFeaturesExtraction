@@ -1,0 +1,29 @@
+function [DFT_Matrix,SD_Matrix]=SYM_DFT(DFT_Matrix,FEP_Matrix,SD_Matrix,N,r,k)
+%This function computes the one dimensional DFT for an Image.
+
+    Rows=size(FEP_Matrix,1);
+    Cols=size(FEP_Matrix,2);
+
+    DFT_Matrix=cell(Rows,Cols);
+    SD_Matrix=zeros(Rows,Cols);
+
+    for intRow= 1 : Rows,
+        for intCol=1 :  Cols,
+            [DFT_Matrix,SD_Matrix]=SYM_DFT(DFT_Matrix,FEP_Matrix,SD_Matrix,Cols,intRow,intCol);
+        end
+    end
+    RealPart=0;
+    ImaginaryPart=0;
+
+    for n= 1 : N,
+        Step=2*pi/N;
+        Theta=Step*(n-1)*(k-1);
+        RealPart=RealPart + cos(Theta)*double(FEP_Matrix(r,k));
+        ImaginaryPart=ImaginaryPart + (-1)*sin(Theta)*double(FEP_Matrix(r,k));
+    end
+
+    Frequency_Value=[num2str(RealPart),'+i',num2str(ImaginaryPart)];
+    DFT_Matrix(r,k)=mat2cell(str2mat(Frequency_Value));
+    SD_Matrix(r,k)=sqrt(double(RealPart^2) + double(ImaginaryPart^2));
+end
+
